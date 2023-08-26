@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const nfcButton = document.getElementById('nfc-button');
-
+  const displayOutput = document.getElementById('display-output');
+  const displayError = document.getElementById('display-error');
   async function fetchProducts() {
     try {
       // wait for cors error resolve from Benedict
@@ -8,12 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
+      displayError.innerHTML =error;
       throw error;
     }
   }
 
   fetchProducts().then((products) => {
     console.log(products);
+    displayOutput.innerHTML = products;
     nfcButton.addEventListener('click', async () => {
       try {
         const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
