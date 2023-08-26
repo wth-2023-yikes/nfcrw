@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     // Query backend endpoint
-                    const response = await axios.post('/generate-audio', {
+                    const response = await axios.post('https://wthspeech.vercel.app/api/generate-audio', {
                         textInput: textInput
                     }, {
                         responseType: 'arraybuffer'
