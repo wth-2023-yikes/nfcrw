@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
   const nfcButton = document.getElementById('nfc-button');
+  const scanButton = document.getElementById('nfc-button-scan');
   const displayOutput = document.getElementById('display-output');
   const displayError = document.getElementById('display-error');
+  const displayError2 = document.getElementById('display-error2');
+  const displayOutputScan = document.getElementById('display-output-scan');
   async function fetchProducts() {
     try {
       // wait for cors error resolve from Benedict
@@ -41,6 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   );
+  scanButton.addEventListener('click', async () => {
+    try {
+      const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
+
+      if (nfcPermission.state === 'granted') {
+        await readNFCData();
+      } else if (nfcPermission.state === 'prompt') {
+        const result = await navigator.permissions.request({ name: 'nfc' });
+
+        if (result.state === 'granted') {
+          await readNFCData();
+        } else {
+          console.log('NFC permission denied.');
+        }
+      } else {
+        console.log('NFC permission denied.');
+      }
+    } catch (error) {
+      console.error('Error requesting NFC permission:', error);
+    }
+  });
 
   async function writeNFCData() {
     try {
@@ -59,6 +83,27 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('NFC data written successfully.');
     } catch (error) {
       console.error('Error writing NFC data:', error);
+    }
+  }
+
+  async function readNFCData() {
+    try {
+      const nfc = new NDEFReader();
+      await nfc.scan();
+
+      nfc.addEventListener('reading', event => {
+        const { records } = event;
+        for (const record of records) {
+          console.log('NFC Record:', record);
+          displayOutputScan.innerHTML += (record+"\n");
+          // Handle the NFC record data as needed.
+        }
+      });
+
+      console.log('Scanning for NFC tags...');
+    } catch (error) {
+      displayError2.innerHTML =error;
+      console.error('Error scanning NFC:', error);
     }
   }
 });
