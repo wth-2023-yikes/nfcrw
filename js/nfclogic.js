@@ -1,27 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
   const nfcButton = document.getElementById('nfc-button');
 
-  nfcButton.addEventListener('click', async () => {
+  async function fetchProducts() {
     try {
-      const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
+      const response = await axios.get('https://dashboard-tau-ivory.vercel.app/api/products');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
+  }
 
-      if (nfcPermission.state === 'granted') {
-        await writeNFCData();
-      } else if (nfcPermission.state === 'prompt') {
-        const result = await navigator.permissions.request({ name: 'nfc' });
+  fetchProducts.then((products) => {
+    console.log(products);
+    nfcButton.addEventListener('click', async () => {
+      try {
+        const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
 
-        if (result.state === 'granted') {
+        if (nfcPermission.state === 'granted') {
           await writeNFCData();
+        } else if (nfcPermission.state === 'prompt') {
+          const result = await navigator.permissions.request({ name: 'nfc' });
+
+          if (result.state === 'granted') {
+            await writeNFCData();
+          } else {
+            console.log('NFC permission denied.');
+          }
         } else {
           console.log('NFC permission denied.');
         }
-      } else {
-        console.log('NFC permission denied.');
+      } catch (error) {
+        console.error('Error requesting NFC permission:', error);
       }
-    } catch (error) {
-      console.error('Error requesting NFC permission:', error);
-    }
-  });
+    })
+  }
+
+  );
 
   async function writeNFCData() {
     try {
