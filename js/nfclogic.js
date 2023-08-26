@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchProducts() {
     try {
+      // wait for cors error resolve from Benedict
       const response = await axios.get('https://dashboard-tau-ivory.vercel.app/api/products');
       return response.data;
     } catch (error) {
@@ -11,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  fetchProducts.then((products) => {
+  fetchProducts().then((products) => {
     console.log(products);
     nfcButton.addEventListener('click', async () => {
       try {
