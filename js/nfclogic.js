@@ -1,44 +1,45 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const nfcButton = document.getElementById('nfc-button');
+  const nfcButton = document.getElementById('nfc-button');
 
-    nfcButton.addEventListener('click', async () => {
-      try {
-        const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
+  nfcButton.addEventListener('click', async () => {
+    try {
+      const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
 
-        if (nfcPermission.state === 'granted') {
-          readNFCData();
-        } else if (nfcPermission.state === 'prompt') {
-          const result = await navigator.permissions.request({ name: 'nfc' });
+      if (nfcPermission.state === 'granted') {
+        await writeNFCData();
+      } else if (nfcPermission.state === 'prompt') {
+        const result = await navigator.permissions.request({ name: 'nfc' });
 
-          if (result.state === 'granted') {
-            readNFCData();
-          } else {
-            console.log('NFC permission denied.');
-          }
+        if (result.state === 'granted') {
+          await writeNFCData();
         } else {
           console.log('NFC permission denied.');
         }
-      } catch (error) {
-        console.error('Error requesting NFC permission:', error);
+      } else {
+        console.log('NFC permission denied.');
       }
-    });
-
-    async function readNFCData() {
-      try {
-        const nfc = new NDEFReader();
-        await nfc.scan();
-
-        nfc.addEventListener('reading', event => {
-          const { records } = event;
-          for (const record of records) {
-            console.log('NFC Record:', record);
-            // Handle the NFC record data as needed.
-          }
-        });
-
-        console.log('Scanning for NFC tags...');
-      } catch (error) {
-        console.error('Error scanning NFC:', error);
-      }
+    } catch (error) {
+      console.error('Error requesting NFC permission:', error);
     }
   });
+
+  async function writeNFCData() {
+    try {
+      const nfc = new NDEFWriter();
+
+      // Create an example record to write
+      // I'll query the API at this point to grab the data back
+      const record = new NDEFRecord({
+        recordType: "text",
+        data: "id placeholder"
+      });
+
+      const message = new NDEFMessage([record]);
+      await nfc.write(message);
+
+      console.log('NFC data written successfully.');
+    } catch (error) {
+      console.error('Error writing NFC data:', error);
+    }
+  }
+});
