@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  const displayError = document.getElementById('display-error');
-  const displayOutput = document.getElementById('display-output');
+  // const displayError = document.getElementById('display-error');
+  // const displayOutput = document.getElementById('display-output');
   const nfcButton = document.getElementById('write-nfc');
   const productList = document.getElementById('product-list');
 
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
 
       if (nfcPermission.state === 'granted') {
-        displayOutput.innerHTML += 'NFC permission granted';
+        // displayOutput.innerHTML += 'NFC permission granted';
         await writeNFCData(selectedRadioId);
       } else if (nfcPermission.state === 'prompt') {
         const result = await navigator.permissions.request({ name: 'nfc' });
@@ -33,16 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result.state === 'granted') {
           await writeNFCData(selectedRadioId);
         } else {
-          displayError.innerHTML += 'NFC permission denied.';
+          // displayError.innerHTML += 'NFC permission denied.';
           console.log('NFC permission denied.');
         }
       } else {
-        displayError.innerHTML += 'NFC permission denied.';
+        // displayError.innerHTML += 'NFC permission denied.';
 
         console.log('NFC permission denied.');
       }
     } catch (error) {
-      displayError.innerHTML += 'NFC permission denied.';
+      // displayError.innerHTML += 'NFC permission denied.';
 
       console.error('Error requesting NFC permission:', error);
     }
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
-      displayError.innerHTML += ("\n" + error);
+      // displayError.innerHTML += ("\n" + error);
       throw error;
     }
   }
@@ -65,27 +65,32 @@ document.addEventListener('DOMContentLoaded', () => {
       // const products = await fetchProducts();
       await nfc.write({ records: [{ data: id, recordType: "text" }] });
 
-      displayOutput.innerHTML += 'NFC data written successfully.';
+      // displayOutput.innerHTML += 'NFC data written successfully.';
     } catch (error) {
-      displayError.innerHTML += 'Error writing NFC data: ' + error;
+      console.error('Error writing NFC:', error);
+      // displayError.innerHTML += 'Error writing NFC data: ' + error;
     }
   }
   // Call fetchProducts initially to load product data
   fetchProducts().then(products => {
     console.log(products);
-    displayOutput.innerHTML = products;
+    // displayOutput.innerHTML = products;
+
+    const productContainer = document.createElement('div');
+    productContainer.classList.add("flex", "flex-col", "justify-between");
+
     for (const product of products) {
       var htmlContent =
         `
-        <div class="flex flex-row"> <!-- Allow to take up available space -->
+          <div class="flex flex-row"> <!-- Allow to take up available space -->
             <div class="flex flex-col">
               <h2 class="text-black text-2xl font-semibold">
                 Product Name
               </h2>
               <p>${product.name}</p>
               
-              <h3 class="text-black text-xl font-semibold">
-                Product Price
+              <h3 class="text-black text-xl font-semibold mt-2">
+                Price ($)
               </h3>
               <p>${product.price}</p>
             </div>
@@ -97,12 +102,21 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           </div>
         `
+      // const productDiv = document.createElement('div');
+      // productDiv.innerHTML = htmlContent;
       const productDiv = document.createElement('div');
       productDiv.innerHTML = htmlContent;
-      productList.appendChild(productDiv);
+      productDiv.classList.add("flex", "flex-row", "justify-between", "w-full", "my-4", "bg-white", "hover:bg-gray-100", "py-2", "px-4", "border", "border-gray-400", "rounded", "shadow");
+      productContainer.appendChild(productDiv);
+
+      productContainer.appendChild(productDiv);
+      // productDiv.classList.add("flex", "flex-row");
+      // productList.appendChild(productDiv);
       // nameList.innerHTML += product.name + "<br>";
       // priceList.innerHTML += product.price + "<br>";
     }
+      productList.appendChild(productContainer);
+
     // You can display products information in a meaningful way here
   });
 
