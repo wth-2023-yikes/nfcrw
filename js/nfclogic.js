@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const record of message.records) {
       const plainText = textDecoder.decode(record.data);
       // displayOutputScan.innerHTML += (plainText);
+      //query the db api with the id for full info
+      // return a json object with the info
+      // {
+      //  id: 1,
+      //  name: "name",
+      //  price: 1.99,
+      // }
   }
   });
 
