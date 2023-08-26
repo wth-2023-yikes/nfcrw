@@ -5,19 +5,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const nfcButton = document.getElementById('write-nfc');
   const productList = document.getElementById('product-list');
 
-  
+  function getSelectedRadioButtonId(radioButtons) {
+    for (const radioButton of radioButtons) {
+      if (radioButton.checked) {
+        return radioButton.id; // Return the id of the selected radio button
+      }
+    }
+    return null; // Return null if no radio button is selected
+  }
   nfcButton.addEventListener('click', async () => {
     try {
+      const radioButtons = document.querySelectorAll('input[name="optionGroup"]');
+      const selectedRadioId = getSelectedRadioButtonId(radioButtons);
+      if (selectedRadioId) {
+        console.log('Selected radio button ID:', selectedRadioId);
+      } else {
+        console.log('No radio button is selected.');
+      }
       const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
 
       if (nfcPermission.state === 'granted') {
-        displayOutput.innerHTML += 'NFC permission granted'; 
-        await writeNFCData();
+        displayOutput.innerHTML += 'NFC permission granted';
+        await writeNFCData(selectedRadioId);
       } else if (nfcPermission.state === 'prompt') {
         const result = await navigator.permissions.request({ name: 'nfc' });
 
         if (result.state === 'granted') {
-          await writeNFCData();
+          await writeNFCData(selectedRadioId);
         } else {
           displayError.innerHTML += 'NFC permission denied.';
           console.log('NFC permission denied.');
@@ -34,34 +48,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-    async function fetchProducts() {
-      try {
-        const response = await axios.get('https://dashboard-tau-ivory.vercel.app/api/products');
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        displayError.innerHTML += ("\n" + error);
-        throw error;
-      }
+  async function fetchProducts() {
+    try {
+      const response = await axios.get('https://dashboard-tau-ivory.vercel.app/api/products');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      displayError.innerHTML += ("\n" + error);
+      throw error;
     }
+  }
 
-    async function writeNFCData() {
-      try {
-        const nfc = new NDEFReader();
-        // const products = await fetchProducts();
-        await nfc.write({records:[{data:"2", recordType: "text"}]});
-  
-        displayOutput.innerHTML += 'NFC data written successfully.';
-      } catch (error) {
-        displayError.innerHTML += 'Error writing NFC data: ' + error;
-      }
+  async function writeNFCData(id) {
+    try {
+      const nfc = new NDEFReader();
+      // const products = await fetchProducts();
+      await nfc.write({ records: [{ data: id, recordType: "text" }] });
+
+      displayOutput.innerHTML += 'NFC data written successfully.';
+    } catch (error) {
+      displayError.innerHTML += 'Error writing NFC data: ' + error;
     }
-    // Call fetchProducts initially to load product data
-    fetchProducts().then(products => {
-      console.log(products);
-      displayOutput.innerHTML = products;
-      for (const product of products) {
-        var htmlContent = 
+  }
+  // Call fetchProducts initially to load product data
+  fetchProducts().then(products => {
+    console.log(products);
+    displayOutput.innerHTML = products;
+    for (const product of products) {
+      var htmlContent =
         `
         <div class="flex flex-row"> <!-- Allow to take up available space -->
             <div class="flex flex-col">
@@ -77,37 +91,64 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <div class="flex flex-col justify-between items-end">
-            <input type="checkbox" id="select" class="flex peer w-4 h-4 mt-2 left-6 accent-blue-600 rounded-full" />
+            <input type="radio" name="select-group" id="${product.id}" class="flex peer w-4 h-4 mt-2 left-6 accent-blue-600 rounded-full" />
             <button class="flex text-sky-500 hover:text-sky-700 decoration-solid">
               View More
             </button>
           </div>
         `
-        const productDiv = document.createElement('div');
-        productDiv.innerHTML = htmlContent;
-        productList.appendChild(productDiv);
-        // nameList.innerHTML += product.name + "<br>";
-        // priceList.innerHTML += product.price + "<br>";
-      }
-      // You can display products information in a meaningful way here
-    });
+      const productDiv = document.createElement('div');
+      productDiv.innerHTML = htmlContent;
+      productList.appendChild(productDiv);
+      // nameList.innerHTML += product.name + "<br>";
+      // priceList.innerHTML += product.price + "<br>";
+    }
+    // You can display products information in a meaningful way here
+  });
 
   // const nfcReader = new NDEFReader();
-  // nfcReader.addEventListener('reading', event => {
-  //   const {message} = event;
+  // nfcReader.addEventListener('reading', async event => {
+  //   const { message } = event;
   //   const textDecoder = new TextDecoder('utf-8');
   //   for (const record of message.records) {
   //     const plainText = textDecoder.decode(record.data);
-  //     // displayOutputScan.innerHTML += (plainText);
-  //     //query the db api with the id for full info
-  //     // return a json object with the info
-  //     // {
-  //     //  id: 1,
-  //     //  name: "name",
-  //     //  price: 1.99,
-  //     // }
-  // }
+  //     try {
+  //       const response = await axios.get(`https://dashboard-tau-ivory.vercel.app/api/rfid/${plainText}/product`, {
+  //         responseType: 'arraybuffer'
+  //       });
+
+  //       const name = response.data.name;
+  //       const price = response.data.price;
+  //       const quantity = response.data.quantity;
+
+  //       const textInput = `${name}. Cost: ${price}. ${quantity} available.`;
+
+  //       try {
+  //         // Query backend endpoint
+  //         const response = await axios.post('/generate-audio', {
+  //           textInput: textInput
+  //         }, {
+  //           responseType: 'arraybuffer'
+  //         });
+
+  //         const audioData = response.data;
+  //         const blob = new Blob([audioData], { type: 'audio/mpeg' });
+
+  //         const audioElement = new Audio();
+  //         audioElement.src = URL.createObjectURL(blob);
+
+  //         // Play the audio
+  //         audioElement.play();
+  //       } catch (error) {
+  //         console.error(error);
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+
+  //   }
   // });
+});
 
   // document.getElementById('startNFCButton').addEventListener('click', async () => {
   //   try {
@@ -118,8 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
   //     console.error('Error requesting NFC permissions:', error);
   //   }
   // });
-
-});
 
   // async function writeNFCData(productId) {
   //   try {
